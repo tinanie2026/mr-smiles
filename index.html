@@ -1676,7 +1676,15 @@
   .face-art.custom-mouth .mouth { opacity: 0; }
   .face-art.custom-mouth .mouth.sel { opacity: 1; }
   .editor-card { width: min(100%, 440px); max-height: calc(100dvh - 32px); overflow-y: auto; }
-  .editor-preview { width: 130px; height: 130px; margin: 34px auto 12px; }
+  .editor-preview { width: 170px; height: 170px; margin: 4px auto 6px; padding: 30px 20px 10px; border-radius: 22px; transition: background-color .4s; }
+  .editor-note { margin: 0 0 12px !important; font-size: .75rem; opacity: .7; }
+  .editor-stage-name { font-weight: 700; opacity: .75; }
+  #opt-stage .opt { min-width: 34px; padding: 0; }
+  #opt-stage .opt:disabled { opacity: .35; cursor: not-allowed; }
+  .editor-card .modal-actions { flex-wrap: wrap; }
+  .acc { filter: var(--acc-filter, none); transition: filter var(--t); }
+  .preview .crack { stroke-dashoffset: 100 !important; transition: none; }
+  .preview.show-cracks .crack { stroke-dashoffset: 0 !important; }
   .editor-preview svg { width: 100%; height: 100%; overflow: visible; }
   .editor-row { margin-bottom: 12px; text-align: left; }
   .editor-label { font-weight: 800; font-size: .85rem; margin-bottom: 6px; }
@@ -2000,6 +2008,7 @@
   <div class="corner corner-left">
     <button id="pause-btn" class="corner-btn" type="button">⏸ Pause</button>
     <button id="music-btn" class="corner-btn" type="button" aria-pressed="false">🔇 Sound</button>
+    <button id="voice-btn" class="corner-btn" type="button" aria-pressed="true" hidden>🗣️ Voice</button>
   </div>
   <div class="corner corner-right">
     <button id="reset-btn" class="corner-btn" type="button">↺ Reset game</button>
@@ -2957,13 +2966,16 @@
   <div id="editor-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editor-title">
     <div class="modal-card editor-card">
       <h3 id="editor-title">🎨 Face Editor</h3>
+      <div class="editor-row"><div class="editor-label">Which stage? <span id="editor-stage-name" class="editor-stage-name"></span></div><div class="opts" id="opt-stage"></div></div>
       <div id="editor-preview" class="editor-preview"></div>
+      <p class="editor-note">Colours are toned to fit this stage, so the face always shows up well.</p>
       <div class="editor-row"><div class="editor-label">Skin colour</div><div class="opts" id="opt-skin"></div></div>
       <div class="editor-row"><div class="editor-label">Eye colour</div><div class="opts" id="opt-eyes"></div></div>
       <div class="editor-row"><div class="editor-label">Mouth</div><div class="opts" id="opt-mouth"></div></div>
       <div class="editor-row"><div class="editor-label">Accessory</div><div class="opts" id="opt-acc"></div></div>
       <div class="modal-actions">
         <button id="editor-reset" class="btn-cancel" type="button">Back to normal</button>
+        <button id="editor-all" class="btn-cancel" type="button">🔁 Use on all stages</button>
         <button id="editor-done" class="big-btn" type="button">Done</button>
       </div>
     </div>
@@ -3785,6 +3797,31 @@
     ],
   };
   const DEFAULT_FACE = { skin: null, eyes: null, mouth: null, acc: 'none' };
+  // Face Editor: each of Story 1's stages 1–10 can have its own face. The colours you pick are toned to fit that
+  // stage (darker and duller as the story gets darker), so the face always stands out from its background.
+  // bg..crack = the stage's own colours, m = its usual mouth, mix/tint = how much a picked colour is darkened,
+  // acc = how accessories are dimmed, rim = a light outline (dark stages), cracks = the face is cracked.
+  const FACE_STAGES = [
+    { bg: '#ffd3e6', skin: '#ffd93b', edge: '#e8a400', sclera: '#ffffff', pupil: '#2b1d2e', mouth: '#7a2e3b', crack: '#2a2622', m: 'm0', mix: 1, tint: '#000000', acc: 'none' },
+    null, // stage 2 shows the Coin, not the face
+    { bg: '#66737d', skin: '#e0bf4e', edge: '#9a7d22', sclera: '#ffffff', pupil: '#1d1a17', mouth: '#4a3a33', crack: '#2a2622', m: 'm2', mix: 0.78, tint: '#4a4a50', acc: 'saturate(.7) brightness(.92)' },
+    { bg: '#3d4552', skin: '#b3a98a', edge: '#7d745a', sclera: '#ffffff', pupil: '#2b1d2e', mouth: '#2e2a28', crack: '#2a2622', m: 'm3', mix: 0.62, tint: '#55555c', acc: 'saturate(.45) brightness(.8)' },
+    { bg: '#1b1a19', skin: '#8a8476', edge: '#4e4a42', sclera: '#2a2826', pupil: '#000000', mouth: '#1a1817', crack: '#1c1a18', m: 'm3', mix: 0.48, tint: '#2a2826', acc: 'saturate(.45) brightness(.65)', cracks: true },
+    { bg: '#0b0606', skin: '#6a645e', edge: '#8c8178', sclera: '#050303', pupil: '#ff2b2b', mouth: '#120a0a', crack: '#2a0505', m: 'm5', mix: 0.4, tint: '#1a1212', acc: 'saturate(.6) brightness(.55)', cracks: true, rim: true },
+    { bg: '#0a0612', skin: '#5a546c', edge: '#8a80a8', sclera: '#050303', pupil: '#ff2b2b', mouth: '#0c0812', crack: '#1a0526', m: 'm5', mix: 0.38, tint: '#1a1424', acc: 'saturate(.6) brightness(.55)', cracks: true, rim: true },
+    { bg: '#000000', skin: '#45424c', edge: '#8a8794', sclera: '#000000', pupil: '#ffffff', mouth: '#000000', crack: '#4a4a4a', m: 'm7', mix: 0.3, tint: '#141416', acc: 'saturate(.2) brightness(.42)', cracks: true, rim: true },
+    { bg: '#070000', skin: '#4a3a10', edge: '#c9a43a', sclera: '#e8e0c8', pupil: '#ff1a1a', mouth: '#1a0505', crack: '#1f1400', m: 'm0', mix: 0.34, tint: '#1a0f05', acc: 'saturate(.7) brightness(.6)', cracks: true, rim: true },
+    null, // stage 10 shows Dath, not the face
+  ];
+  const mixHex = (a, b, t) => '#' + [1, 3, 5].map((i) =>
+    Math.round(parseInt(a.slice(i, i + 2), 16) * t + parseInt(b.slice(i, i + 2), 16) * (1 - t)).toString(16).padStart(2, '0')).join('');
+  const toneSkin = (hex, i) => mixHex(hex, FACE_STAGES[i].tint, FACE_STAGES[i].mix);
+  const toneEyes = (hex, i) => mixHex(hex, FACE_STAGES[i].tint, Math.max(0.75, FACE_STAGES[i].mix));
+  const okFace = (f) => {
+    const o = { ...DEFAULT_FACE };
+    if (f) for (const k of Object.keys(DEFAULT_FACE)) if (FACE_OPTIONS[k].some((x) => x.id === f[k])) o[k] = f[k];
+    return o;
+  };
 
   // Maths quiz (opened by the ✕ button): 3 questions, each harder than the last.
   // Pass a round (2+ right) and the next round starts one level harder.
@@ -5156,7 +5193,7 @@
   el.title.textContent = GAME_NAME;
 
   const newRunId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  const freshState = () => ({ runId: newRunId(), series: 1, stars: 0, starGiven: false, startTotal: 0, score: 0, total: 0, spinReadyAt: 0, quizLevel: 1, stageQuizDone: [], surpriseStage: 0, surpriseClicks: 0, finaleAct: 0, finaleClaps: 0, face: { ...DEFAULT_FACE }, owned: Object.fromEntries(UPGRADES.map((u) => [u.id, 0])) });
+  const freshState = () => ({ runId: newRunId(), series: 1, stars: 0, starGiven: false, startTotal: 0, score: 0, total: 0, spinReadyAt: 0, quizLevel: 1, stageQuizDone: [], surpriseStage: 0, surpriseClicks: 0, finaleAct: 0, finaleClaps: 0, faces: {}, owned: Object.fromEntries(UPGRADES.map((u) => [u.id, 0])) });
   let state = freshState();
 
   function load() {
@@ -5168,10 +5205,12 @@
       state.score = num(d.score);
       state.total = Math.max(num(d.total), state.score);
       for (const u of UPGRADES) state.owned[u.id] = Math.floor(num(d.owned && d.owned[u.id]));
-      if (d.face) {
-        for (const k of Object.keys(DEFAULT_FACE)) {
-          if (FACE_OPTIONS[k].some((o) => o.id === d.face[k])) state.face[k] = d.face[k];
-        }
+      if (d.faces && typeof d.faces === 'object') {
+        for (const [k, f] of Object.entries(d.faces)) if (FACE_STAGES[+k]) state.faces[+k] = okFace(f);
+      } else if (d.face) {
+        // older saves had one face for every stage: give it to each stage (its colours get toned per stage)
+        const f = okFace(d.face);
+        FACE_STAGES.forEach((st, i) => { if (st) state.faces[i] = { ...f }; });
       }
       state.quizLevel = Math.max(1, Math.floor(num(d.quizLevel)) || 1);
       if (Array.isArray(d.stageQuizDone)) state.stageQuizDone = d.stageQuizDone.filter(Number.isInteger);
@@ -5227,10 +5266,12 @@
     body.classList.add('stage-' + STAGES[s].look);
     body.classList.toggle('zones-on', state.series > 1 || s + 1 >= FEATURES.zones.stage);
     el.tagline.textContent = STAGES[s].tagline;
+    applyFace();
     applyUnlocks();
     if (announce) {
       announceUnlocks(prev, s);
       say(STAGES[s].milestone, 5500);
+      speakCreepy(STAGES[s].milestone, true);
       if (s >= 3 && !reduceMotion) {
         body.classList.remove('flicker');
         void body.offsetWidth;
@@ -5276,7 +5317,7 @@
       if (!bubbleBusy && !popupOpen() && !paused && !document.hidden) {
         const lines = isFinale() && state.finaleAct ? FINALE[state.finaleAct - 1].idle : STAGES[stage].idle;
         const pool = lines.filter((l) => l !== lastIdle);
-        if (pool.length) { lastIdle = pool[Math.floor(Math.random() * pool.length)]; say(lastIdle); }
+        if (pool.length) { lastIdle = pool[Math.floor(Math.random() * pool.length)]; say(lastIdle); speakCreepy(lastIdle); }
       }
       scheduleIdle();
     }, min + Math.random() * (max - min));
@@ -5804,7 +5845,7 @@
     el.pauseSub.textContent = bye
       ? `Your game is saved, ${rankings.name}. Come back soon!`
       : stage >= 2 ? 'Shh... it is still watching 👀' : 'Take a break!';
-    if (p) { save(); el.resumeBtn.focus(); } else el.pauseBtn.focus();
+    if (p) { save(); hushVoice(); el.resumeBtn.focus(); } else el.pauseBtn.focus();
     syncMusic();
   }
   el.pauseBtn.addEventListener('click', () => setPaused(!paused));
@@ -5965,6 +6006,7 @@
   }
   function openStart() {
     startOpen = true;
+    hushVoice();
     paused = true;
     deleting = -1;
     $('#start-new-form').hidden = true;
@@ -5981,6 +6023,7 @@
     $('#start-screen').classList.remove('open');
     syncMusic();
     say(STAGES[stage].milestone);
+    speakCreepy(STAGES[stage].milestone, true);
   }
   // switching to another player reloads the game with their file
   function goToFile(i) {
@@ -6285,26 +6328,55 @@
   el.spinModal.addEventListener('click', (e) => { if (e.target === el.spinModal) closeSpin(); });
 
   /* ---------- Face editor ---------- */
-  let editorOpen = false, previewSvg = null;
+  let editorOpen = false, previewSvg = null, editStage = 0;
+  // the stage (0–9) whose face is showing right now, or -1 when the round face is not on screen
+  const faceStage = () => (state.series === 1 && FACE_STAGES[stage] ? stage : -1);
+  const FACE_VARS = ['--skin', '--edge', '--sclera', '--pupil', '--mouth', '--crack', '--acc-filter'];
 
-  function applyFaceTo(svg) {
-    const f = state.face;
-    if (f.skin) {
-      svg.style.setProperty('--skin', f.skin);
-      svg.style.setProperty('--edge', `color-mix(in srgb, ${f.skin} 65%, #000)`);
-    } else {
-      svg.style.removeProperty('--skin');
-      svg.style.removeProperty('--edge');
+  // preview = the editor's picture, which always shows the chosen stage's own colours and background
+  function applyFaceTo(svg, i, preview) {
+    const st = FACE_STAGES[i] || null;
+    const f = (st && state.faces[i]) || DEFAULT_FACE;
+    const v = {};
+    if (preview && st) Object.assign(v, { '--skin': st.skin, '--edge': st.edge, '--sclera': st.sclera, '--pupil': st.pupil, '--mouth': st.mouth, '--crack': st.crack });
+    if (st && f.skin) {
+      const sk = toneSkin(f.skin, i);
+      v['--skin'] = sk;
+      v['--edge'] = st.rim ? mixHex(sk, '#ffffff', 0.55) : mixHex(sk, '#000000', 0.65); // light rim on dark stages
     }
-    if (f.eyes) svg.style.setProperty('--pupil', f.eyes);
-    else svg.style.removeProperty('--pupil');
-    svg.classList.toggle('custom-mouth', !!f.mouth);
-    svg.querySelectorAll('.mouth').forEach((m) => m.classList.toggle('sel', !!f.mouth && m.classList.contains(f.mouth)));
-    svg.dataset.acc = f.acc;
+    if (st && f.eyes) v['--pupil'] = toneEyes(f.eyes, i);
+    if (st) v['--acc-filter'] = st.acc;
+    for (const k of FACE_VARS) { if (v[k]) svg.style.setProperty(k, v[k]); else svg.style.removeProperty(k); }
+    const mouth = f.mouth || (preview && st ? st.m : null);
+    svg.classList.toggle('custom-mouth', !!mouth);
+    svg.querySelectorAll('.mouth').forEach((m) => m.classList.toggle('sel', !!mouth && m.classList.contains(mouth)));
+    svg.dataset.acc = st ? f.acc : 'none';
+    if (preview) {
+      svg.classList.toggle('show-cracks', !!(st && st.cracks));
+      el.editorPreview.style.backgroundColor = st ? st.bg : '';
+    }
   }
   function applyFace() {
-    applyFaceTo(el.art);
-    if (previewSvg) applyFaceTo(previewSvg);
+    applyFaceTo(el.art, faceStage(), false);
+    if (previewSvg) applyFaceTo(previewSvg, editStage, true);
+  }
+
+  function buildStageOptions() {
+    const box = $('#opt-stage');
+    box.innerHTML = '';
+    FACE_STAGES.forEach((st, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt';
+      b.textContent = String(i + 1);
+      b.disabled = !st;
+      b.title = st ? `Stage ${i + 1}: ${STORY_1[i].name}` : `Stage ${i + 1} shows ${STORY_1[i].name}, not the face`;
+      b.setAttribute('aria-label', b.title);
+      b.setAttribute('aria-pressed', String(i === editStage));
+      b.addEventListener('click', () => { editStage = i; buildStageOptions(); buildEditorOptions(); applyFace(); });
+      box.appendChild(b);
+    });
+    $('#editor-stage-name').textContent = `· Stage ${editStage + 1}: ${STORY_1[editStage].name}`;
   }
 
   function buildEditorOptions() {
@@ -6316,11 +6388,12 @@
         b.type = 'button';
         const isColor = (key === 'skin' || key === 'eyes') && o.id;
         b.className = 'opt' + (isColor ? ' swatch' : '');
-        if (isColor) { b.style.background = o.id; b.setAttribute('aria-label', o.label); b.title = o.label; }
+        // swatches show the colour already toned for the chosen stage
+        if (isColor) { b.style.background = key === 'skin' ? toneSkin(o.id, editStage) : toneEyes(o.id, editStage); b.setAttribute('aria-label', o.label); b.title = o.label; }
         else b.textContent = o.label;
-        b.setAttribute('aria-pressed', String(state.face[key] === o.id));
+        b.setAttribute('aria-pressed', String((state.faces[editStage] || DEFAULT_FACE)[key] === o.id));
         b.addEventListener('click', () => {
-          state.face[key] = o.id;
+          state.faces[editStage] = { ...(state.faces[editStage] || DEFAULT_FACE), [key]: o.id };
           box.querySelectorAll('.opt').forEach((x) => x.setAttribute('aria-pressed', 'false'));
           b.setAttribute('aria-pressed', 'true');
           applyFace();
@@ -6365,6 +6438,8 @@
     previewSvg.querySelector('defs').remove(); // reuse the main face's clip paths
     el.editorPreview.innerHTML = '';
     el.editorPreview.appendChild(previewSvg);
+    editStage = faceStage() >= 0 ? stage : 0;
+    buildStageOptions();
     buildEditorOptions();
     applyFace();
     el.editorModal.classList.add('open');
@@ -6377,11 +6452,20 @@
   }
 
   el.editorDone.addEventListener('click', closeEditor);
+  // "Back to normal" resets only the chosen stage
   el.editorReset.addEventListener('click', () => {
-    state.face = { ...DEFAULT_FACE };
+    delete state.faces[editStage];
     buildEditorOptions();
     applyFace();
     save();
+  });
+  // copy this stage's choices to every stage (each stage still tones the colours to fit)
+  $('#editor-all').addEventListener('click', () => {
+    const f = { ...(state.faces[editStage] || DEFAULT_FACE) };
+    FACE_STAGES.forEach((st, i) => { if (st) state.faces[i] = { ...f }; });
+    applyFace();
+    save();
+    showToast('🎨 Used on all stages — the colours are toned to fit each one!');
   });
   el.editorModal.addEventListener('click', (e) => { if (e.target === el.editorModal) closeEditor(); });
 
@@ -6700,6 +6784,10 @@
     if (!musicOn || !audio || audio.ctx.state !== 'running') return;
     const t = audio.ctx.currentTime;
     if (kind === 'pop') { tone(84 + Math.floor(Math.random() * 5), t, 0.08, 'sine', 0, 0.25); return; }
+    if (kind === 'eerie') { // a low, wobbly hum under the monster's voice
+      tone(40, t, 1.8, 'sine', 0, 0.16); tone(41, t + 0.05, 1.8, 'triangle', 18, 0.08); tone(63, t + 0.25, 1.3, 'sine', -35, 0.035);
+      return;
+    }
     if (kind === 'buy') { [79, 84, 88].forEach((n, i) => tone(n, t + i * 0.06, 0.18, 'triangle', 0, 0.3)); return; }
     if (kind === 'good') [72, 76, 79, 84].forEach((n, i) => tone(n, t + i * 0.07, 0.25, 'triangle', 0, 0.4));
     else [50, 46].forEach((n, i) => tone(n, t + i * 0.15, 0.3, 'square', 0, 0.25));
@@ -6716,6 +6804,84 @@
   window.addEventListener('pointerdown', startSavedMusic, { once: true });
   window.addEventListener('keydown', startSavedMusic, { once: true });
   document.addEventListener('visibilitychange', syncMusic);
+
+  /* ---------- Creepy monster voice (from Story 1 stage 10, and all of Story 2) ---------- */
+  // The monster whispers just a few words of what it says — slowly, in a low voice, like a horror story.
+  // It uses the voices built into the phone or computer (no files to download).
+  const VOICE_KEY = 'mr-smiles-voice';
+  let voiceOn = true;
+  try { voiceOn = localStorage.getItem(VOICE_KEY) !== 'off'; } catch (e) { /* ignore */ }
+  const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+  const voiceStage = () => state.series > 1 || stage >= 9;
+  // spooky "novelty" voices that Macs and iPhones have; each monster gets one of them
+  const CREEPY_VOICES = ['Whisper', 'Bad News', 'Fred', 'Albert', 'Zarvox', 'Trinoids', 'Ralph', 'Daniel'];
+  let voices = [];
+  const loadVoices = () => { voices = canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []; };
+  if (canSpeak) { loadVoices(); speechSynthesis.addEventListener('voiceschanged', loadVoices); }
+  function voiceFor(lookN) {
+    const list = CREEPY_VOICES.map((n) => voices.find((v) => v.name.startsWith(n))).filter(Boolean);
+    return list.length ? list[lookN % list.length] : voices[0] || null;
+  }
+  const STOP_WORDS = new Set(("the a an and or but to of in on at for with is are am was were be been it its it's i i'm im me my mine we our us they " +
+    "them their this that these those so do does did have has had will would can could just now all too very oh yes no not here there what who " +
+    "how then than from up into about like as if get got go goes one two three ever every much more most some any by off over under again also " +
+    "really let lets let's tap click points stage yay wow hee hoo ooh aww").split(' '));
+  const SPOOKY_WORDS = new Set(('see sees watch watching watched stare staring eye eyes teeth tooth bite chomp dark darkness night shadow shadows ' +
+    'behind alone hungry hide hiding forever never back closer inside empty hollow dream dreams sleep asleep scream eat gone cold quiet whisper ' +
+    'follow find trapped open you monster monsters spider bat bones creak creepy secret ghost moon wake awake').split(' '));
+  function creepyWords(text) {
+    if (/×|\btap\b|\bclick/i.test(text)) return ''; // skip game tips like "Tap my beak for ×10!"
+    const words = (text.match(/[A-Za-z']+/g) || []).map((w) => w.toLowerCase().replace(/^'+|'+$/g, ''));
+    const picks = [];
+    words.forEach((w, i) => {
+      const spooky = SPOOKY_WORDS.has(w);
+      if ((spooky || (w.length >= 5 && !STOP_WORDS.has(w))) && !picks.some((p) => p.w === w)) picks.push({ w, i, score: (spooky ? 10 : 0) + w.length });
+    });
+    const best = picks.sort((a, b) => b.score - a.score).slice(0, 3).sort((a, b) => a.i - b.i).map((p) => p.w);
+    if (!best.length) return '';
+    const start = Math.random() < 0.3 ? ['hehehe... ', 'shhh... ', 'listen... '][Math.floor(Math.random() * 3)] : '';
+    return start + best.join('... ') + '...';
+  }
+  let lastSpoke = 0;
+  function speakCreepy(text, always = false) {
+    if (!canSpeak || !voiceOn || !voiceStage() || paused || document.hidden) return;
+    if (!always && (Date.now() - lastSpoke < 9000 || Math.random() < 0.35)) return; // not every sentence
+    const words = creepyWords(text);
+    if (!words) return;
+    lastSpoke = Date.now();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(words);
+    const v = voiceFor(look());
+    if (v) u.voice = v;
+    u.pitch = 0.1 + Math.random() * 0.35;
+    u.rate = 0.55 + Math.random() * 0.2;
+    u.volume = 0.9;
+    speechSynthesis.speak(u);
+    sfx('eerie');
+  }
+  const hushVoice = () => { if (canSpeak) speechSynthesis.cancel(); };
+  // phones only allow speech after a tap, so the first tap quietly "wakes up" the voice
+  window.addEventListener('pointerdown', () => {
+    if (!canSpeak) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  }, { once: true });
+  const voiceBtn = $('#voice-btn');
+  function syncVoiceBtn() {
+    voiceBtn.hidden = !canSpeak || !voiceStage();
+    setText(voiceBtn, voiceOn ? '🗣️ Voice' : '🤐 Voice');
+    voiceBtn.setAttribute('aria-pressed', String(voiceOn));
+    voiceBtn.title = voiceOn ? 'Turn the creepy monster voice off' : 'Turn the creepy monster voice on';
+  }
+  voiceBtn.addEventListener('click', () => {
+    voiceOn = !voiceOn;
+    try { localStorage.setItem(VOICE_KEY, voiceOn ? 'on' : 'off'); } catch (e) { /* ignore */ }
+    if (voiceOn) speakCreepy('hello... I see you...', true); else hushVoice();
+    syncVoiceBtn();
+  });
+  syncVoiceBtn();
+  setInterval(syncVoiceBtn, 700);
 
   /* ---------- The grand finale (stage 20): an opera in 5 acts ---------- */
   // Every click on the final stage is a clap. Enough claps and the show moves on to the next act.
