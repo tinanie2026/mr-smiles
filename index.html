@@ -1892,6 +1892,7 @@
   }
   .fb-text:focus { outline: none; border-color: var(--accent); }
   .fb-note { font-size: .8rem; opacity: .75; margin: 8px 0 12px; }
+  .fb-status { font-weight: 800; margin: 0 0 12px; }
   .start-msg { margin-top: 12px; background: none; border: none; color: inherit; font: inherit; font-weight: 700; opacity: .75; text-decoration: underline; cursor: pointer; }
   .rank-list { list-style: none; margin: 0 0 14px; padding: 0; text-align: left; }
   .rank-list li {
@@ -3084,7 +3085,8 @@
         <button class="fb-mood" type="button" data-mood="Too scary!" aria-pressed="false" aria-label="Too scary">😱</button>
       </div>
       <textarea id="fb-text" class="fb-text" maxlength="1000" placeholder="Your favourite monster, ideas for new stages, a bug you found…" aria-label="Your message"></textarea>
-      <p class="fb-note">Only the game maker sees this. It opens your email app to send it. Please don't write your address or phone number.</p>
+      <p class="fb-note">Only the game maker sees this. Please don't write your address or phone number.</p>
+      <p id="fb-status" class="fb-status" aria-live="polite" hidden></p>
       <div class="modal-actions">
         <button id="fb-cancel" class="btn-cancel" type="button">Cancel</button>
         <button id="fb-send" class="big-btn" type="button">📨 Send</button>
@@ -6726,6 +6728,7 @@
   function openFeedback() {
     fbOpen = true;
     fbMood = '';
+    fbStatus('');
     document.querySelectorAll('.fb-mood').forEach((b) => b.setAttribute('aria-pressed', 'false'));
     $('#fb-modal').classList.add('open');
     $('#fb-modal .modal-card').scrollTop = 0;
@@ -6741,15 +6744,49 @@
     fbMood = b.dataset.mood;
     document.querySelectorAll('.fb-mood').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
   });
-  $('#fb-send').addEventListener('click', () => {
+  // Sent straight from the game through FormSubmit (a free form-to-email service), so no email app is needed.
+  function fbStatus(msg) {
+    const st = $('#fb-status');
+    st.hidden = !msg;
+    st.textContent = msg || '';
+  }
+  let fbSending = false;
+  $('#fb-send').addEventListener('click', async () => {
+    if (fbSending) return;
     const text = $('#fb-text').value.trim();
-    if (!text && !fbMood) { $('#fb-text').focus(); return; }
+    if (!text && !fbMood) { fbStatus('Pick a face or write a message first 🙂'); $('#fb-text').focus(); return; }
     const who = currentFile() ? currentFile().name : 'A player';
     const where = startOpen ? 'the start screen' : $('#stage-label').textContent;
-    const body = (fbMood ? fbMood + '\n\n' : '') + (text ? text + '\n\n' : '') + `— ${who} (at ${where})`;
-    location.href = `mailto:${FEEDBACK_TO}?subject=${encodeURIComponent('Mr. Smiles message from ' + who)}&body=${encodeURIComponent(body)}`;
-    $('#fb-text').value = '';
-    closeFeedback();
+    fbSending = true;
+    $('#fb-send').disabled = true;
+    fbStatus('Sending… 📨');
+    try {
+      const res = await fetch(`https://formsubmit.co/ajax/${FEEDBACK_TO}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: `Mr. Smiles message from ${who}`,
+          _template: 'box',
+          _captcha: 'false',
+          player: who,
+          mood: fbMood || '-',
+          message: text || '-',
+          stage: where,
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || String(out.success) !== 'true') throw new Error(out.message || 'not sent');
+      $('#fb-text').value = '';
+      fbMood = '';
+      document.querySelectorAll('.fb-mood').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      fbStatus('Sent! Thank you 💖');
+      setTimeout(() => { if (fbOpen) closeFeedback(); }, 1600);
+    } catch (e) {
+      fbStatus(navigator.onLine === false ? 'No internet right now. Try again later!' : 'Oops, it did not send. Please try again later.');
+    } finally {
+      fbSending = false;
+      $('#fb-send').disabled = false;
+    }
   });
   $('#fb-cancel').addEventListener('click', closeFeedback);
   $('#fb-modal').addEventListener('click', (e) => { if (e.target.id === 'fb-modal') closeFeedback(); });
