@@ -24,33 +24,33 @@
   :root { --t: 2.5s; }
 
   body {
-    --bg: #ffe9f3; --ink: #3a2a40;
+    --bg: #ffd3e6; --ink: #3a2a40;
     --panel: rgba(255,255,255,.65); --card: #ffffff;
-    --skin: #ffd93b; --edge: #f0b400;
+    --skin: #ffd93b; --edge: #e8a400;
     --sclera: #ffffff; --pupil: #2b1d2e; --mouth: #7a2e3b; --crack: #2a2622;
     --bubble: #ffffff; --bubble-ink: #3a2a40; --accent: #ff5fa2;
     --gift: #7fd6ff; --ribbon: #ff5fa2;
   }
   body.stage-1 {
-    --bg: #fbeede; --ink: #3f3238;
-    --skin: #ffd23a; --edge: #e2a800; --accent: #ff8a4a;
+    --bg: #cfe4f7; --ink: #2f3442;
+    --skin: #f7cc35; --edge: #d09a00; --accent: #ff8a4a;
   }
   body.stage-2 {
-    --bg: #e0dccf; --ink: #3b3834;
-    --panel: rgba(255,255,255,.45); --card: #f4f1ea;
-    --skin: #e6cf72; --edge: #c2a64a; --pupil: #1d1a17; --mouth: #4a3a33;
-    --accent: #8f876a;
+    --bg: #66737d; --ink: #f3f0e8;
+    --panel: rgba(255,255,255,.12); --card: #56626b;
+    --skin: #e0bf4e; --edge: #9a7d22; --pupil: #1d1a17; --mouth: #4a3a33;
+    --accent: #e0bf4e;
   }
   body.stage-3 {
-    --bg: #7a7672; --ink: #eeeae4;
-    --panel: rgba(20,20,20,.35); --card: #5a5754;
-    --skin: #bdb7a0; --edge: #8f8a76; --mouth: #2e2a28;
+    --bg: #3d4552; --ink: #e8e6e0;
+    --panel: rgba(255,255,255,.08); --card: #333a46;
+    --skin: #b3a98a; --edge: #7d745a; --mouth: #2e2a28;
     --bubble: #d6d2cc; --bubble-ink: #222222; --accent: #d9d3c0;
   }
   body.stage-4 {
-    --bg: #2c2a29; --ink: #d8d4ce;
-    --panel: rgba(0,0,0,.4); --card: #3c3a38;
-    --skin: #928e84; --edge: #5e5b55;
+    --bg: #1b1a19; --ink: #d8d4ce;
+    --panel: rgba(255,255,255,.05); --card: #2a2826;
+    --skin: #8a8476; --edge: #4e4a42;
     --sclera: #2a2826; --pupil: #000000; --mouth: #1a1817; --crack: #1c1a18;
     --bubble: #3a3836; --bubble-ink: #e8e4de; --accent: #b4ada2;
     --gift: #2a2826; --ribbon: #9a0018;
@@ -58,7 +58,7 @@
   body.stage-5 {
     --bg: #0b0606; --ink: #e9d9d9;
     --panel: rgba(40,0,0,.35); --card: #1d1414;
-    --skin: #6a645e; --edge: #3a3532;
+    --skin: #6a645e; --edge: #8c8178;
     --sclera: #050303; --pupil: #ff2b2b; --mouth: #120a0a; --crack: #2a0505;
     --bubble: #140a0a; --bubble-ink: #ff5a5a; --accent: #ff3030;
     --gift: #1a1010; --ribbon: #c00020;
@@ -66,7 +66,7 @@
   body.stage-6 {
     --bg: #0a0612; --ink: #e6dcf5;
     --panel: rgba(40,0,60,.35); --card: #1a1224;
-    --skin: #5e5870; --edge: #2e2838;
+    --skin: #5a546c; --edge: #8a80a8;
     --sclera: #050303; --pupil: #ff2b2b; --mouth: #0c0812; --crack: #1a0526;
     --bubble: #150d1f; --bubble-ink: #c77dff; --accent: #b04bff;
     --gift: #1a1224; --ribbon: #b04bff;
@@ -74,7 +74,7 @@
   body.stage-7 {
     --bg: #000000; --ink: #bdbdbd;
     --panel: rgba(255,255,255,.05); --card: #121212;
-    --skin: #262428; --edge: #000000;
+    --skin: #45424c; --edge: #8a8794;
     --sclera: #000000; --pupil: #ffffff; --mouth: #000000; --crack: #4a4a4a;
     --bubble: #111111; --bubble-ink: #d0d0d0; --accent: #e0e0e0;
     --gift: #111111; --ribbon: #666666;
@@ -82,10 +82,10 @@
   body.stage-8 {
     --bg: #070000; --ink: #ffe9a8;
     --panel: rgba(60,0,0,.35); --card: #1f0f0a;
-    --skin: #ffd93b; --edge: #b88400;
-    --sclera: #ffffff; --pupil: #ff1a1a; --mouth: #5a0f1a; --crack: #5a3a00;
-    --bubble: #ffd93b; --bubble-ink: #5a0f1a; --accent: #ffd93b;
-    --gift: #ffd93b; --ribbon: #b00020;
+    --skin: #4a3a10; --edge: #c9a43a;
+    --sclera: #e8e0c8; --pupil: #ff1a1a; --mouth: #1a0505; --crack: #1f1400;
+    --bubble: #3a2a0a; --bubble-ink: #ffd98a; --accent: #c9a43a;
+    --gift: #3a2a0a; --ribbon: #b00020;
   }
   body.stage-9 {
     --bg: #030807; --ink: #bfe6e2;
@@ -1500,7 +1500,7 @@
   .face-parts { transition: opacity 2s ease; }
   .monster { opacity: 0; transition: opacity 3s ease; }
   .stage-9 .face-parts { opacity: 0; }
-  .stage-9 .monster { opacity: 1; transform-box: fill-box; transform-origin: 50% 30%; animation: sway 5s ease-in-out infinite; }
+  .stage-9 .monster { filter: brightness(.62) saturate(.85); opacity: 1; transform-box: fill-box; transform-origin: 50% 30%; animation: sway 5s ease-in-out infinite; }
   .m-sign { transform-box: fill-box; transform-origin: 50% 0; animation: swing 2.8s ease-in-out infinite alternate; }
   .m-pupil { transition: transform .15s ease-out; }
   .preview .face-parts { opacity: 1 !important; }
