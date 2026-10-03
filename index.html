@@ -1726,6 +1726,27 @@
   .shop-action:active { transform: translateY(2px); }
 
   /* Face surprises */
+  .surprises { --sp-a: #f28aa8; --sp-b: #ffc2d6; --sp-c: #8a4a5a; --sp-d: #ffd98a; --sp-e: #7a4a32; --sp-f: #fff3d6; opacity: .9; transition: opacity var(--t); }
+  .stage-0 .surprises { --sp-a: #f28aa8; --sp-b: #ffc2d6; --sp-c: #8a4a5a; --sp-d: #ffd98a; --sp-e: #7a4a32; --sp-f: #fff3d6; opacity: 0.9; }
+  .stage-2 .surprises { --sp-a: #c48b80; --sp-b: #d9c3b2; --sp-c: #4a4540; --sp-d: #c9ac6a; --sp-e: #5a4a3a; --sp-f: #efe8d6; opacity: 0.85; }
+  .stage-3 .surprises { --sp-a: #93a7b8; --sp-b: #aaa59c; --sp-c: #4a4744; --sp-d: #c4bca0; --sp-e: #6b6355; --sp-f: #cfd3d6; opacity: 0.85; }
+  .stage-4 .surprises { --sp-a: #7f93a3; --sp-b: #bfae94; --sp-c: #2a2826; --sp-d: #a39680; --sp-e: #5a5040; --sp-f: #8c8c8a; opacity: 0.8; }
+  .stage-5 .surprises { --sp-a: #b8322e; --sp-b: #4a1a1e; --sp-c: #140b0b; --sp-d: #c8562e; --sp-e: #3a1c18; --sp-f: #cfc6be; opacity: 0.85; }
+  .stage-6 .surprises { --sp-a: #a24ccb; --sp-b: #3a2a5a; --sp-c: #0c0812; --sp-d: #3fbfb2; --sp-e: #4a3a70; --sp-f: #c4bcd6; opacity: 0.85; }
+  .stage-7 .surprises { --sp-a: #7a7a7e; --sp-b: #2e2c30; --sp-c: #050505; --sp-d: #5a5a60; --sp-e: #3a3a3a; --sp-f: #8e8e92; opacity: 0.6; }
+  .stage-8 .surprises { --sp-a: #c4202a; --sp-b: #5a0f1a; --sp-c: #2a0808; --sp-d: #d49a24; --sp-e: #5a1010; --sp-f: #eadcc0; opacity: 0.9; }
+  .sp-set { display: none; }
+  .surprises.set-is-cute .set-cute, .surprises.set-is-gloom .set-gloom, .surprises.set-is-creepy .set-creepy { display: inline; }
+  .sp-drip { animation: spDrip 2.8s ease-in infinite; }
+  .sp-sag { transform-box: view-box; animation: xSway 4s ease-in-out infinite alternate; }
+  .sp-slow { animation-duration: .9s !important; }
+  .sp-slow-orbit { animation-duration: 9s !important; }
+  .sp-rain { animation: xDrop 1.5s linear infinite; }
+  .sp-dust { animation: xRise 6s linear infinite; }
+  .sp-ember { animation: xRise 4.5s linear infinite; }
+  .sp-dangle { animation: spDangle 3s ease-in-out infinite; }
+  @keyframes spDrip { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
+  @keyframes spDangle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
   .sp { opacity: 0; transform: scale(0); transform-box: fill-box; transform-origin: center; transition: opacity .3s, transform .45s cubic-bezier(.3, 1.8, .5, 1); }
   .sp.on { opacity: 1; transform: scale(1); }
   .sp-spin { transform-box: view-box; animation: xSpin 6s linear infinite; }
@@ -1733,13 +1754,13 @@
   .sp-flapL, .sp-flapR { transform-box: view-box; animation: spFlap .3s ease-in-out infinite alternate; }
   .sp-flapR { animation-delay: -.3s; }
   .sp-orbit { transform-box: view-box; transform-origin: 100px 100px; animation: xSpin 5s linear infinite; }
-  .sp-twinkle { transform-box: fill-box; transform-origin: center; animation: spTwinkle .9s ease-in-out infinite alternate; }
+  .sp-twinkle { transform-box: fill-box; transform-origin: center; animation: spTwinkle 1.4s ease-in-out infinite alternate; }
   @keyframes spProp { from { transform: scaleX(1); } 50% { transform: scaleX(-1); } to { transform: scaleX(1); } }
   @keyframes spFlap { from { transform: scaleX(1); } to { transform: scaleX(.45); } }
-  @keyframes spTwinkle { from { transform: scale(.5) rotate(0); opacity: .5; } to { transform: scale(1.2) rotate(45deg); opacity: 1; } }
+  @keyframes spTwinkle { from { transform: scale(.5) rotate(0); opacity: .35; } to { transform: scale(1) rotate(45deg); opacity: .8; } }
   .surprise-hint {
     position: absolute; z-index: 5; left: 50%; bottom: 34px; transform: translateX(-50%);
-    padding: 5px 12px; border-radius: 999px; background: #fff; color: #5a2a6b; font-weight: 900; font-size: .85rem;
+    padding: 5px 12px; border-radius: 999px; background: var(--card); color: var(--ink); border: 2px solid var(--accent); font-weight: 900; font-size: .85rem;
     white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,.2);
   }
   .surprise-hint.pop { animation: comboPulse .4s ease-out; }
@@ -1750,8 +1771,8 @@
   .r-tiltb .face-parts { transform: rotate(-8deg); }
   .face-parts { transform-box: view-box; transform-origin: 100px 100px; transition: opacity 2s ease, transform .12s ease-out; }
   .preview .surprises { display: none; }
-  .r-blush .cheek { opacity: 1 !important; fill: #ff4d6d; }
-  @media (prefers-reduced-motion: reduce) { .sp-spin, .sp-prop, .sp-flapL, .sp-flapR, .sp-orbit, .sp-twinkle { animation: none; } .face-parts { transition: none; } }
+  .r-blush .cheek { opacity: .7 !important; fill: var(--sp-a, #f28aa8); }
+  @media (prefers-reduced-motion: reduce) { .sp-spin, .sp-prop, .sp-flapL, .sp-flapR, .sp-orbit, .sp-twinkle, .sp-drip, .sp-sag, .sp-rain, .sp-dust, .sp-ember, .sp-dangle { animation: none; } .face-parts { transition: none; } }
 
   /* Start screen with player files */
   .start-screen {
@@ -2105,51 +2126,145 @@
               <path d="M150 38 Q164 6 144 -10 Q146 14 128 28 Z"/>
             </g>
 
-            <!-- Face surprises: keep clicking and new things pop onto the face (they reset every stage) -->
+            <!-- Face surprises: keep clicking and new things pop onto the face (they reset every stage).
+                 Three sets that fit the stage's mood, coloured by the stage (--sp-a … --sp-f). -->
             <g class="surprises">
-              <g class="sp sp-1">
-                <path d="M42 120 c-4 -6 -12 -2 -8 4 l8 8 l8 -8 c4 -6 -4 -10 -8 -4 Z" fill="#ff3d6e"/>
-                <path d="M158 120 c-4 -6 -12 -2 -8 4 l8 8 l8 -8 c4 -6 -4 -10 -8 -4 Z" fill="#ff3d6e"/>
-              </g>
-              <g class="sp sp-2">
-                <g class="sp-spin" style="transform-origin:34px 34px">
-                  <ellipse cx="34" cy="20" rx="7" ry="11" fill="#ff8fc8" stroke="#c2185b" stroke-width="2"/>
-                  <ellipse cx="34" cy="20" rx="7" ry="11" transform="rotate(72 34 34)" fill="#ff8fc8" stroke="#c2185b" stroke-width="2"/>
-                  <ellipse cx="34" cy="20" rx="7" ry="11" transform="rotate(144 34 34)" fill="#ff8fc8" stroke="#c2185b" stroke-width="2"/>
-                  <ellipse cx="34" cy="20" rx="7" ry="11" transform="rotate(216 34 34)" fill="#ff8fc8" stroke="#c2185b" stroke-width="2"/>
-                  <ellipse cx="34" cy="20" rx="7" ry="11" transform="rotate(288 34 34)" fill="#ff8fc8" stroke="#c2185b" stroke-width="2"/>
+              <!-- cute set: Happy, Watching -->
+              <g class="sp-set set-cute">
+                <g class="sp sp-1">
+                  <path d="M42 120 c-4 -6 -12 -2 -8 4 l8 8 l8 -8 c4 -6 -4 -10 -8 -4 Z" fill="var(--sp-a)"/>
+                  <path d="M158 120 c-4 -6 -12 -2 -8 4 l8 8 l8 -8 c4 -6 -4 -10 -8 -4 Z" fill="var(--sp-a)"/>
                 </g>
-                <circle cx="34" cy="34" r="7" fill="#ffd23a" stroke="#b88400" stroke-width="2"/>
+                <g class="sp sp-2">
+                  <g class="sp-spin" style="transform-origin:34px 34px"><ellipse cx="34" cy="20" rx="6.8" ry="11" transform="rotate(0 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="20" rx="6.8" ry="11" transform="rotate(72 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="20" rx="6.8" ry="11" transform="rotate(144 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="20" rx="6.8" ry="11" transform="rotate(216 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="20" rx="6.8" ry="11" transform="rotate(288 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/></g>
+                  <circle cx="34" cy="34" r="7" fill="var(--sp-d)" stroke="var(--sp-c)" stroke-width="1.6"/>
+                </g>
+                <g class="sp sp-3" stroke="var(--sp-c)" stroke-width="3" stroke-linecap="round">
+                  <path d="M57 64 L52 55 M68 61 L67 51 M80 63 L84 54"/>
+                  <path d="M120 63 L116 54 M132 61 L133 51 M143 64 L148 55"/>
+                </g>
+                <g class="sp sp-4">
+                  <path d="M100 118 C90 106 70 108 62 122 C72 116 84 122 100 124 C116 122 128 116 138 122 C130 108 110 106 100 118 Z" fill="var(--sp-e)" stroke="var(--sp-c)" stroke-width="1.6"/>
+                  <circle cx="62" cy="121" r="3" fill="var(--sp-e)"/><circle cx="138" cy="121" r="3" fill="var(--sp-e)"/>
+                </g>
+                <g class="sp sp-5">
+                  <g class="sp-flapL" style="transform-origin:100px 104px"><path d="M100 104 Q82 86 76 98 Q74 108 100 106 Q80 112 84 120 Q92 124 100 106 Z" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/></g>
+                  <g class="sp-flapR" style="transform-origin:100px 104px"><path d="M100 104 Q118 86 124 98 Q126 108 100 106 Q120 112 116 120 Q108 124 100 106 Z" fill="var(--sp-a)" stroke="var(--sp-c)" stroke-width="1.6"/></g>
+                  <path d="M100 96 V116 M100 96 Q96 88 92 86 M100 96 Q104 88 108 86" fill="none" stroke="var(--sp-c)" stroke-width="2" stroke-linecap="round"/>
+                </g>
+                <g class="sp sp-6">
+                  <path d="M58 18 Q60 -14 100 -16 Q140 -14 142 18 Z" fill="var(--sp-a)" stroke="var(--sp-c)" stroke-width="2.4"/>
+                  <path d="M78 -10 Q74 4 76 18 M100 -16 V18 M122 -10 Q126 4 124 18" fill="none" stroke="var(--sp-d)" stroke-width="4"/>
+                  <path d="M54 18 H146" stroke="var(--sp-c)" stroke-width="4" stroke-linecap="round"/>
+                  <path d="M100 -16 V-26" stroke="var(--sp-c)" stroke-width="2.4"/>
+                  <g class="sp-prop" style="transform-origin:100px -27px"><path d="M100 -27 Q80 -34 70 -27 Q80 -21 100 -27 Q120 -34 130 -27 Q120 -21 100 -27 Z" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/></g>
+                </g>
+                <g class="sp sp-7"><g class="sp-orbit"><path d="M100 -30 l4 9 l10 1 l-7 7 l2 10 l-9 -5 l-9 5 l2 -10 l-7 -7 l10 -1 Z" fill="var(--sp-d)" stroke="var(--sp-c)" stroke-width="1.6" stroke-linejoin="round"/></g></g>
+                <g class="sp sp-8">
+                  <path class="sp-twinkle" d="M14 40 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="var(--sp-f)"/>
+                  <path class="sp-twinkle" style="animation-delay:-.4s" d="M186 50 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="var(--sp-f)"/>
+                  <path class="sp-twinkle" style="animation-delay:-.8s" d="M8 150 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="var(--sp-f)"/>
+                  <path class="sp-twinkle" style="animation-delay:-1.2s" d="M190 160 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="var(--sp-f)"/>
+                </g>
               </g>
-              <g class="sp sp-3" stroke="#2a1a10" stroke-width="3.4" stroke-linecap="round">
-                <path d="M57 64 L52 55 M68 61 L67 51 M80 63 L84 54"/>
-                <path d="M120 63 L116 54 M132 61 L133 51 M143 64 L148 55"/>
+
+              <!-- gloomy set: Sad, Cracked -->
+              <g class="sp-set set-gloom">
+                <g class="sp sp-1">
+                  <path class="sp-drip" d="M58 104 q-6 9 0 13 q6 -4 0 -13 Z" fill="var(--sp-a)" stroke="var(--sp-c)" stroke-width="1"/>
+                  <path class="sp-drip" style="animation-delay:-1.4s" d="M142 104 q-6 9 0 13 q6 -4 0 -13 Z" fill="var(--sp-a)" stroke="var(--sp-c)" stroke-width="1"/>
+                </g>
+                <g class="sp sp-2">
+                  <path d="M46 44 Q34 26 22 32" fill="none" stroke="var(--sp-e)" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M30 30 q-6 -6 -10 0" fill="var(--sp-e)"/>
+                  <g class="sp-sag" style="transform-origin:22px 34px">
+                    <ellipse cx="14" cy="40" rx="5" ry="9" transform="rotate(30 14 40)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.4"/>
+                    <ellipse cx="22" cy="44" rx="5" ry="10" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.4"/>
+                    <ellipse cx="30" cy="40" rx="5" ry="9" transform="rotate(-30 30 40)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.4"/>
+                    <circle cx="22" cy="34" r="5" fill="var(--sp-d)" stroke="var(--sp-c)" stroke-width="1.4"/>
+                  </g>
+                </g>
+                <g class="sp sp-3" stroke="var(--sp-c)" stroke-width="2.6" stroke-linecap="round">
+                  <path d="M55 86 L47 90 M57 93 L50 99 M62 99 L58 106"/>
+                  <path d="M145 86 L153 90 M143 93 L150 99 M138 99 L142 106"/>
+                </g>
+                <g class="sp sp-4"><g transform="rotate(-28 104 42)">
+                  <rect x="86" y="36" width="36" height="13" rx="6.5" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/>
+                  <rect x="98" y="37.5" width="12" height="10" rx="2" fill="var(--sp-d)"/>
+                  <path d="M91 40 v1 M91 45 v1 M117 40 v1 M117 45 v1" stroke="var(--sp-c)" stroke-width="1.4" stroke-linecap="round"/>
+                </g></g>
+                <g class="sp sp-5">
+                  <g class="sp-flapL sp-slow" style="transform-origin:100px 106px"><path d="M100 106 Q84 92 80 102 Q80 112 100 108 Z" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.4"/><circle cx="88" cy="102" r="2" fill="var(--sp-c)"/></g>
+                  <g class="sp-flapR sp-slow" style="transform-origin:100px 106px"><path d="M100 106 Q116 92 120 102 Q120 112 100 108 Z" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.4"/><circle cx="112" cy="102" r="2" fill="var(--sp-c)"/></g>
+                  <ellipse cx="100" cy="107" rx="2.6" ry="7" fill="var(--sp-c)"/>
+                  <path d="M100 100 Q96 94 93 93 M100 100 Q104 94 107 93" fill="none" stroke="var(--sp-c)" stroke-width="1.4" stroke-linecap="round"/>
+                </g>
+                <g class="sp sp-6">
+                  <circle cx="84" cy="-10" r="12" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.8"/>
+                  <circle cx="116" cy="-10" r="12" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.8"/>
+                  <circle cx="100" cy="-18" r="16" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.8"/>
+                  <rect x="80" y="-12" width="40" height="13" fill="var(--sp-b)"/>
+                  <path d="M74 1 H126" stroke="var(--sp-c)" stroke-width="1.8" stroke-linecap="round"/>
+                  <path class="sp-rain" d="M86 6 l-2 6" stroke="var(--sp-a)" stroke-width="2.4" stroke-linecap="round"/>
+                  <path class="sp-rain" style="animation-delay:-.5s" d="M100 6 l-2 6" stroke="var(--sp-a)" stroke-width="2.4" stroke-linecap="round"/>
+                  <path class="sp-rain" style="animation-delay:-1s" d="M114 6 l-2 6" stroke="var(--sp-a)" stroke-width="2.4" stroke-linecap="round"/>
+                </g>
+                <g class="sp sp-7"><g class="sp-orbit sp-slow-orbit"><path d="M100 -36 a10 10 0 1 0 8 16 a8 8 0 1 1 -8 -16 Z" fill="var(--sp-d)" stroke="var(--sp-c)" stroke-width="1.4"/></g></g>
+                <g class="sp sp-8">
+                  <circle class="sp-dust" cx="16" cy="150" r="2" fill="var(--sp-f)"/>
+                  <circle class="sp-dust" style="animation-delay:-1.5s" cx="186" cy="160" r="2.4" fill="var(--sp-f)"/>
+                  <circle class="sp-dust" style="animation-delay:-3s" cx="30" cy="70" r="1.8" fill="var(--sp-f)"/>
+                  <circle class="sp-dust" style="animation-delay:-4.5s" cx="174" cy="80" r="2" fill="var(--sp-f)"/>
+                </g>
               </g>
-              <g class="sp sp-4">
-                <path d="M100 118 C90 106 70 108 62 122 C72 116 84 122 100 124 C116 122 128 116 138 122 C130 108 110 106 100 118 Z" fill="#5a3a1a" stroke="#2a1a10" stroke-width="2"/>
-                <circle cx="62" cy="121" r="3" fill="#5a3a1a"/><circle cx="138" cy="121" r="3" fill="#5a3a1a"/>
-              </g>
-              <g class="sp sp-5">
-                <g class="sp-flapL" style="transform-origin:100px 104px"><path d="M100 104 Q82 86 76 98 Q74 108 100 106 Q80 112 84 120 Q92 124 100 106 Z" fill="#4dd2ff" stroke="#1c4d8c" stroke-width="2"/></g>
-                <g class="sp-flapR" style="transform-origin:100px 104px"><path d="M100 104 Q118 86 124 98 Q126 108 100 106 Q120 112 116 120 Q108 124 100 106 Z" fill="#b388ff" stroke="#4b1f8a" stroke-width="2"/></g>
-                <path d="M100 96 V116 M100 96 Q96 88 92 86 M100 96 Q104 88 108 86" fill="none" stroke="#2a1a10" stroke-width="2.2" stroke-linecap="round"/>
-              </g>
-              <g class="sp sp-6">
-                <path d="M58 18 Q60 -14 100 -16 Q140 -14 142 18 Z" fill="#ff5fa2" stroke="#2a1a10" stroke-width="3"/>
-                <path d="M78 -10 Q74 4 76 18 M100 -16 V18 M122 -10 Q126 4 124 18" fill="none" stroke="#ffd23a" stroke-width="5"/>
-                <path d="M54 18 H146" stroke="#2a1a10" stroke-width="5" stroke-linecap="round"/>
-                <path d="M100 -16 V-26" stroke="#2a1a10" stroke-width="3"/>
-                <g class="sp-prop" style="transform-origin:100px -27px"><path d="M100 -27 Q80 -34 70 -27 Q80 -21 100 -27 Q120 -34 130 -27 Q120 -21 100 -27 Z" fill="#4dd2ff" stroke="#2a1a10" stroke-width="2"/></g>
-              </g>
-              <g class="sp sp-7">
-                <g class="sp-orbit"><path d="M100 -30 l4 9 l10 1 l-7 7 l2 10 l-9 -5 l-9 5 l2 -10 l-7 -7 l10 -1 Z" fill="#ffd23a" stroke="#b88400" stroke-width="2" stroke-linejoin="round"/></g>
-              </g>
-              <g class="sp sp-8">
-                <path class="sp-twinkle" d="M14 40 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="#fff6a8"/>
-                <path class="sp-twinkle" style="animation-delay:-.4s" d="M186 50 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="#fff6a8"/>
-                <path class="sp-twinkle" style="animation-delay:-.8s" d="M8 150 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="#fff6a8"/>
-                <path class="sp-twinkle" style="animation-delay:-1.2s" d="M190 160 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="#fff6a8"/>
-                <path class="sp-twinkle" style="animation-delay:-.6s" d="M100 190 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 Z" fill="#fff6a8"/>
+
+              <!-- creepy set: Awake, Glitching, Hollow, Happy Again -->
+              <g class="sp-set set-creepy">
+                <g class="sp sp-1" stroke="var(--sp-a)" stroke-width="2.6" stroke-linecap="round">
+                  <path d="M32 106 L44 116 M36 102 L50 114 M30 112 L40 120"/>
+                  <path d="M168 106 L156 116 M164 102 L150 114 M170 112 L160 120"/>
+                </g>
+                <g class="sp sp-2">
+                  <path d="M40 44 Q30 52 18 50 M30 49 l-3 -4 M23 51 l-1 5" fill="none" stroke="var(--sp-e)" stroke-width="2.4" stroke-linecap="round"/>
+                  <g><ellipse cx="34" cy="25" rx="5.0" ry="8" transform="rotate(0 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="25" rx="5.0" ry="8" transform="rotate(72 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="25" rx="5.0" ry="8" transform="rotate(144 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="25" rx="5.0" ry="8" transform="rotate(216 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/><ellipse cx="34" cy="25" rx="5.0" ry="8" transform="rotate(288 34 34)" fill="var(--sp-b)" stroke="var(--sp-c)" stroke-width="1.6"/></g>
+                  <circle cx="34" cy="34" r="6" fill="var(--sp-d)" stroke="var(--sp-c)" stroke-width="1.4"/>
+                  <path d="M31 33 q3 -4 6 0 q-3 4 -6 0" fill="none" stroke="var(--sp-c)" stroke-width="1.2"/>
+                </g>
+                <g class="sp sp-3" stroke="var(--sp-c)" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M56 66 L46 52 M64 62 L60 46 M72 61 L72 44 M80 62 L86 47 M87 67 L96 56"/>
+                  <path d="M144 66 L154 52 M136 62 L140 46 M128 61 L128 44 M120 62 L114 47 M113 67 L104 56"/>
+                  <path d="M58 100 L52 108 M70 103 L70 111 M82 100 L88 108 M142 100 L148 108 M130 103 L130 111 M118 100 L112 108"/>
+                </g>
+                <g class="sp sp-4" stroke="var(--sp-e)" stroke-width="2.4" stroke-linecap="round" fill="none">
+                  <path d="M50 126 Q40 120 28 108"/><path d="M150 126 Q160 120 172 108"/>
+                  <path d="M44 116 l-4 6 M44 122 l-4 -6 M36 110 l-4 6 M36 116 l-4 -6 M156 116 l4 6 M156 122 l4 -6 M164 110 l4 6 M164 116 l4 -6" stroke-width="1.8"/>
+                </g>
+                <g class="sp sp-5">
+                  <g class="sp-dangle">
+                    <path d="M134 -30 V38" stroke="var(--sp-f)" stroke-width="1" opacity=".7"/>
+                    <path d="M126 38 l-6 -5 M126 42 l-7 0 M126 46 l-6 5 M142 38 l6 -5 M142 42 l7 0 M142 46 l6 5" stroke="var(--sp-c)" stroke-width="1.8" stroke-linecap="round"/>
+                    <ellipse cx="134" cy="44" rx="8" ry="7" fill="var(--sp-c)"/>
+                    <circle cx="134" cy="36" r="4.4" fill="var(--sp-c)"/>
+                    <circle cx="132.4" cy="35.4" r="1.1" fill="var(--sp-a)"/><circle cx="135.6" cy="35.4" r="1.1" fill="var(--sp-a)"/>
+                  </g>
+                </g>
+                <g class="sp sp-6">
+                  <g class="sp-flapL" style="transform-origin:100px 6px"><path d="M100 6 Q86 -10 70 -4 Q76 0 74 6 Q80 2 84 8 Q90 4 100 10 Z" fill="var(--sp-c)" stroke="var(--sp-b)" stroke-width="1"/></g>
+                  <g class="sp-flapR" style="transform-origin:100px 6px"><path d="M100 6 Q114 -10 130 -4 Q124 0 126 6 Q120 2 116 8 Q110 4 100 10 Z" fill="var(--sp-c)" stroke="var(--sp-b)" stroke-width="1"/></g>
+                  <ellipse cx="100" cy="6" rx="7" ry="8" fill="var(--sp-c)"/>
+                  <path d="M95 0 L94 -6 L98 -1 M105 0 L106 -6 L102 -1" fill="var(--sp-c)"/>
+                  <circle cx="97.4" cy="4" r="1.4" fill="var(--sp-a)"/><circle cx="102.6" cy="4" r="1.4" fill="var(--sp-a)"/>
+                </g>
+                <g class="sp sp-7"><g class="sp-orbit sp-slow-orbit">
+                  <circle cx="100" cy="-28" r="9" fill="var(--sp-f)" stroke="var(--sp-c)" stroke-width="1.6"/>
+                  <circle cx="100" cy="-27" r="4.6" fill="var(--sp-a)"/><circle cx="100" cy="-27" r="2" fill="var(--sp-c)"/>
+                </g></g>
+                <g class="sp sp-8">
+                  <circle class="sp-ember" cx="20" cy="170" r="2" fill="var(--sp-d)"/>
+                  <circle class="sp-ember" style="animation-delay:-1.2s" cx="182" cy="176" r="2.4" fill="var(--sp-d)"/>
+                  <circle class="sp-ember" style="animation-delay:-2.4s" cx="40" cy="190" r="1.8" fill="var(--sp-d)"/>
+                  <circle class="sp-ember" style="animation-delay:-3.6s" cx="164" cy="194" r="2" fill="var(--sp-d)"/>
+                </g>
               </g>
             </g>
             </g><!-- /face-parts -->
@@ -5748,22 +5863,26 @@
   /* ---------- Face surprises ---------- */
   // On the stages that show the round face, every few clicks something new pops onto it.
   // They start again on every stage, so there is always something to discover.
-  const SURPRISES = [
-    { at: 8,   say: 'Aww! You made me blush! 💕' },
-    { at: 20,  say: 'Ooh! A pretty flower for me! 🌸' },
-    { at: 35,  say: 'Look at my fancy eyelashes! 😍' },
-    { at: 55,  say: 'A mustache?! I look SO fancy! 🥸' },
-    { at: 80,  say: 'A butterfly landed on my nose! 🦋' },
-    { at: 110, say: 'Wheee! A propeller hat! 🚁' },
-    { at: 145, say: 'A little star is flying around me! ⭐' },
-    { at: 190, say: "I'm SPARKLY! You found every surprise! ✨" },
-  ];
+  const SURPRISES = [8, 20, 35, 55, 80, 110, 145, 190].map((at) => ({ at }));
+  // which set of surprises fits each look (the stage's mood), and what the face says about each one
+  const SURPRISE_SET = { 0: 'cute', 2: 'cute', 3: 'gloom', 4: 'gloom', 5: 'creepy', 6: 'creepy', 7: 'creepy', 8: 'creepy' };
+  const SURPRISE_SAY = {
+    cute: ['Aww! You made me blush! 💕', 'Ooh! A pretty flower for me! 🌸', 'Look at my fancy eyelashes! 😍', 'A mustache?! I look SO fancy! 🥸',
+      'A butterfly landed on my nose! 🦋', 'Wheee! A propeller hat! 🚁', 'A little star is flying around me! ⭐', "I'm sparkly! You found every surprise! ✨"],
+    gloom: ['A tear... but you stayed with me. 💧', 'My flower is drooping... just like me.', 'Sniff... my eyelashes are wet.', 'A plaster for my crack. That helps a little. 🩹',
+      'A little moth came to keep me company.', 'Oh no... my very own rain cloud. 🌧️', 'The moon is going round and round me... 🌙', 'So quiet and dusty... you found every surprise.'],
+    creepy: ['Hee hee... do you like my scratches?', 'A black rose... just for you. 🥀', 'My eyelashes are SPIKY now.', 'Look how WIDE my smile goes...',
+      'A spider is coming down to say hi. 🕷️', 'A bat sat on my head! 🦇', 'An extra eye... to watch you better. 👁️', 'Glowing embers... you found every secret!'],
+  };
+  const surpriseSet = () => SURPRISE_SET[look()] || 'cute';
   const faceShown = () => state.series === 1 && parseFloat(getComputedStyle($('#face-art .face-parts')).opacity) > 0.5;
-  const surpriseParts = [...document.querySelectorAll('#face-art .surprises .sp')];
+  const surpriseBox = $('#face-art .surprises');
   function showSurprises(pop) {
     if (state.surpriseStage !== stage) { state.surpriseStage = stage; state.surpriseClicks = 0; }
     const n = SURPRISES.filter((sp) => state.surpriseClicks >= sp.at).length;
-    surpriseParts.forEach((g, i) => g.classList.toggle('on', i < n));
+    const set = surpriseSet();
+    for (const k of ['cute', 'gloom', 'creepy']) surpriseBox.classList.toggle('set-is-' + k, k === set);
+    surpriseBox.querySelectorAll('.set-' + set + ' .sp').forEach((g, i) => g.classList.toggle('on', i < n));
     const hint = $('#surprise-hint');
     const next = SURPRISES[n];
     hint.hidden = !faceShown() || isFinale();
@@ -5778,7 +5897,7 @@
     state.surpriseClicks++;
     const after = showSurprises(false);
     if (after > before) {
-      say(SURPRISES[after - 1].say, 2500);
+      say(SURPRISE_SAY[surpriseSet()][after - 1], 2500);
       sfx('good');
       showSurprises(true);
       const r = el.art.getBoundingClientRect();
