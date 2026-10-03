@@ -6989,9 +6989,14 @@
     syncMusic();
   });
   // Browsers only allow sound after a click/tap, so if music was left on, start it on the first one.
-  const startSavedMusic = () => { if (musicOn && initAudio()) syncMusic(); };
-  window.addEventListener('pointerdown', startSavedMusic, { once: true });
-  window.addEventListener('keydown', startSavedMusic, { once: true });
+  // iPhones only count the END of a tap (touchend/pointerup/click), not pointerdown, so listen for those too.
+  const startSavedMusic = () => {
+    if (musicOn && initAudio()) syncMusic();
+    if (audio && audio.ctx.state === 'running') ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((t) => window.removeEventListener(t, startSavedMusic, true));
+  };
+  ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((t) => window.addEventListener(t, startSavedMusic, true));
+  // Let game sounds play on iPhone even when the side switch is on silent (Safari 17+).
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* older Safari */ }
   document.addEventListener('visibilitychange', syncMusic);
 
   /* ---------- Creepy monster voice (from Story 1 stage 10, and all of Story 2) ---------- */
@@ -7017,6 +7022,17 @@
     if (vctx && vctx.state === 'suspended') vctx.resume();
     return vctx;
   }
+  // iPhones keep a sound player silent until it is started during a tap, so wake the voice player
+  // (with a tiny silent sound) on taps until it is running.
+  const VOICE_WAKE = ['pointerup', 'touchend', 'click', 'keydown'];
+  function wakeVoice() {
+    if (!canClip || !voiceOn) return;
+    const c = voiceCtx();
+    if (!c) return;
+    try { const b = c.createBufferSource(); b.buffer = c.createBuffer(1, 1, 22050); b.connect(c.destination); b.start(0); } catch (e) { /* ignore */ }
+    if (c.state === 'running') VOICE_WAKE.forEach((t) => window.removeEventListener(t, wakeVoice, true));
+  }
+  VOICE_WAKE.forEach((t) => window.addEventListener(t, wakeVoice, true));
   function loadClip(key) {
     if (!clipCache.has(key)) {
       clipCache.set(key, fetch('voice/' + key + '.m4a')
