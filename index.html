@@ -1941,13 +1941,48 @@
   /* ============================================================
      RESPONSIVE
      ============================================================ */
+  /* Phones: the whole game fits on one screen. The page never scrolls; only the shop scrolls inside itself. */
   @media (max-width: 760px) {
-    main { grid-template-columns: 1fr; gap: 16px; align-items: start; }
-    header { padding-top: 34px; }
-    .play { padding-top: 96px; }
-    .face-btn { width: min(72vw, 42vh, 320px); }
-    .bubble { font-size: .95rem; }
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+    body { -webkit-user-select: none; user-select: none; }
+    input, textarea { -webkit-user-select: text; user-select: text; }
+    #app {
+      height: 100dvh; min-height: 0; overflow: hidden;
+      padding: max(6px, env(safe-area-inset-top)) 10px max(6px, env(safe-area-inset-bottom));
+    }
+    header { padding-top: 38px; } /* room for the corner buttons */
+    h1, .tagline, .story-badge { display: none; }
+    .score { font-size: 2rem; }
+    .score-label { font-size: .7rem; }
+    .pps { margin-top: 0; font-size: .85rem; }
+    .stage-info { margin-top: 4px; }
+    .stage-label { font-size: .85rem; }
+    .stage-next, .best-line { font-size: .72rem; margin-top: 2px; }
+    .squiz-btn { margin-top: 4px; padding: 5px 12px; font-size: .78rem; }
+    main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+    .play { flex: 1 1 auto; min-height: 0; padding-top: 62px; justify-content: center; }
+    .face-btn { width: min(80vw, 34dvh, 320px); touch-action: none; } /* tapping the face never scrolls or zooms */
+    .shop {
+      flex: 0 1 auto; max-height: 36dvh; overflow-y: auto; padding: 10px 12px;
+      overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    }
+    .bubble { font-size: .88rem; padding: 8px 12px; max-width: 94%; }
+    .surprise-hint { bottom: 6px; font-size: .75rem; }
+    .combo { bottom: -14px; }
+    .corner { gap: 4px; }
+    .corner-btn { padding: 6px 9px; font-size: .78rem; } /* fits small phones too */
   }
+  /* Touch screens: drop the heavy blur and shadow effects (they make phones stutter) */
+  @media (pointer: coarse) {
+    .face-btn svg { filter: none; }
+    #face-art > g { filter: none !important; }
+    .shop, .pause-screen { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  }
+  /* Things that are not on screen right now stop animating (saves a lot of work, especially on phones) */
+  .fig-off { visibility: hidden; }
+  .fig-off, .fig-off *, .fx-off, .fx-off * { animation-play-state: paused !important; }
+  .fx-off { visibility: hidden; }
+  .fx-off::before, .fx-off::after { animation-play-state: paused !important; }
 
   @media (prefers-reduced-motion: reduce) {
     .stage-1 .m1, .stage-5 .face-art, .stage-6 .face-art, .stage-7 .face-art, .stage-8 .face-art,
@@ -5188,6 +5223,7 @@
     ...[31, 32, 33, 34, 35, 36, 37, 38, 39].map((n) => ['stage-' + n, 1, newFriendPupils(n)]),
   ];
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const touchScreen = window.matchMedia('(pointer: coarse)').matches; // phones and tablets
 
   document.title = GAME_NAME;
   el.title.textContent = GAME_NAME;
@@ -5266,6 +5302,7 @@
     body.classList.add('stage-' + STAGES[s].look);
     body.classList.toggle('zones-on', state.series > 1 || s + 1 >= FEATURES.zones.stage);
     el.tagline.textContent = STAGES[s].tagline;
+    wakeHidden();
     applyFace();
     applyUnlocks();
     if (announce) {
@@ -5287,6 +5324,26 @@
       clearFinaleTimers();
       applyFinaleAct(0, false);
     }
+  }
+
+  // While a stage fades in, everything may animate; ~3 s later, drawings and backgrounds that ended up
+  // invisible are paused and hidden, so the phone only works on what you can see.
+  let sleepTimer = null;
+  function wakeHidden() {
+    document.querySelectorAll('.fig-off').forEach((n) => n.classList.remove('fig-off'));
+    document.querySelectorAll('.fx-off').forEach((n) => n.classList.remove('fx-off'));
+    clearTimeout(sleepTimer);
+    sleepTimer = setTimeout(sleepHidden, 3200);
+  }
+  function sleepHidden() {
+    for (const g of el.art.children) {
+      if (g.tagName !== 'g') continue;
+      if (getComputedStyle(g).opacity === '0') g.classList.add('fig-off');
+    }
+    for (const fx of document.querySelectorAll('.fx')) {
+      if (getComputedStyle(fx).opacity === '0') fx.classList.add('fx-off');
+    }
+    artRect = null;
   }
 
   /* ---------- Speech bubble ---------- */
@@ -5329,9 +5386,24 @@
   window.addEventListener('pointermove', trackPointer, { passive: true });
   window.addEventListener('pointerdown', trackPointer, { passive: true });
 
+  // measuring the page is slow, so remember where the face is and re-measure only a few times a second
+  let artRect = null, artRectAt = 0, eyesAt = 0, pointerMoved = true;
+  const getArtRect = () => {
+    const now = performance.now();
+    if (!artRect || now - artRectAt > 400) { artRect = el.art.getBoundingClientRect(); artRectAt = now; }
+    return artRect;
+  };
+  window.addEventListener('resize', () => { artRect = null; });
+  window.addEventListener('pointermove', () => { pointerMoved = true; }, { passive: true });
+  window.addEventListener('pointerdown', () => { pointerMoved = true; }, { passive: true });
   function updateEyes() {
+    // only work when the pointer moved (or a few times a second, for moving creatures)
+    const now = performance.now();
+    if (!pointerMoved && now - eyesAt < 250) return;
+    pointerMoved = false;
+    eyesAt = now;
     const follow = stage >= 2 && pointer;
-    const r = follow ? el.art.getBoundingClientRect() : null;
+    const r = follow ? getArtRect() : null;
     el.pupils.forEach((p, i) => {
       let tx = 0, ty = 0;
       if (follow) {
@@ -5351,7 +5423,7 @@
     const watcher = WATCHERS.find(([cls]) => body.classList.contains(cls));
     if (watcher && pointer) {
       const [, scale, list, shift = 0] = watcher;
-      const box = r || el.art.getBoundingClientRect();
+      const box = r || getArtRect();
       const sc = box.width / 200;
       list.forEach(({ p, x, y, max }) => {
         const dx = pointer.x - (box.left + (100 + (x - 100) * scale + shift) * sc);
@@ -5420,7 +5492,7 @@
       frames.push({ transform: `translate(${(Math.random() * 2 - 1) * amount}px, ${(Math.random() * 2 - 1) * amount}px)` });
     }
     frames.push({ transform: 'translate(0, 0)' });
-    el.app.animate(frames, { duration: 260 });
+    (touchScreen ? el.art : el.app).animate(frames, { duration: 260 });
   }
 
   // Face targets (from stage 11): the whole face ×1, a medium part ×3, the smallest part ×10
@@ -5434,10 +5506,11 @@
     return 1;
   }
 
-  let zapTimer = null, spinFastTimer = null;
+  let zapTimer = null, spinFastTimer = null, sparksAlive = 0;
   // little stars burst out of every click
   function sparkle(x, y, count = 5) {
-    if (reduceMotion || document.querySelectorAll('.spark').length > 60) return;
+    if (reduceMotion || sparksAlive > (touchScreen ? 24 : 60)) return;
+    if (touchScreen) count = Math.min(count, 4);
     const colors = ['#ffd93b', '#ff5fa2', '#4dd2ff', '#7dff8a', '#ffffff'];
     for (let i = 0; i < count; i++) {
       const sp = document.createElement('span');
@@ -5449,7 +5522,8 @@
       sp.style.color = colors[i % colors.length];
       sp.style.setProperty('--sx', (Math.cos(angle) * dist).toFixed(0) + 'px');
       sp.style.setProperty('--sy', (Math.sin(angle) * dist).toFixed(0) + 'px');
-      sp.addEventListener('animationend', () => sp.remove());
+      sparksAlive++;
+      sp.addEventListener('animationend', () => { sp.remove(); sparksAlive--; });
       document.body.appendChild(sp);
     }
   }
@@ -5787,12 +5861,13 @@
   }
 
   let last = performance.now();
+  let lastDraw = 0;
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 1);
     last = now;
     const pps = perSecond();
     if (pps > 0 && !paused) earn(pps * dt);
-    tick();
+    if (now - lastDraw > 80) { lastDraw = now; tick(); }
     updateEyes();
     requestAnimationFrame(frame);
   }
@@ -5916,7 +5991,9 @@
       'A spider is coming down to say hi. 🕷️', 'A bat sat on my head! 🦇', 'An extra eye... to watch you better. 👁️', 'Glowing embers... you found every secret!'],
   };
   const surpriseSet = () => SURPRISE_SET[look()] || 'cute';
-  const faceShown = () => state.series === 1 && parseFloat(getComputedStyle($('#face-art .face-parts')).opacity) > 0.5;
+  let faceVisible = false;
+  const faceShown = () => faceVisible;
+  const checkFaceVisible = () => { faceVisible = state.series === 1 && parseFloat(getComputedStyle($('#face-art .face-parts')).opacity) > 0.5; };
   const surpriseBox = $('#face-art .surprises');
   function showSurprises(pop) {
     if (state.surpriseStage !== stage) { state.surpriseStage = stage; state.surpriseClicks = 0; }
@@ -5952,7 +6029,7 @@
     reactTimer = setTimeout(() => el.art.classList.remove(...faces), 260);
   }
   // keep the hint right when the stage (and the face) changes
-  setInterval(() => showSurprises(false), 600);
+  setInterval(() => { checkFaceVisible(); showSurprises(false); }, 600);
 
   /* ---------- Player files: the start screen ---------- */
   let deleting = -1;
@@ -6411,6 +6488,7 @@
     previewSvg.removeAttribute('id');
     previewSvg.classList.remove('blink');
     previewSvg.classList.add('preview'); // always preview Mr. Smiles, even at stage 10
+    previewSvg.querySelectorAll('.fig-off').forEach((n) => n.classList.remove('fig-off'));
     previewSvg.querySelector('.monster').remove();
     previewSvg.querySelector('.coin').remove();
     previewSvg.querySelector('.lollo').remove();
@@ -6807,20 +6885,44 @@
 
   /* ---------- Creepy monster voice (from Story 1 stage 10, and all of Story 2) ---------- */
   // The monster whispers just a few words of what it says — slowly, in a low voice, like a horror story.
-  // It uses the voices built into the phone or computer (no files to download).
+  // Every line has its own recorded clip (voice/<code>.m4a): a natural voice made deeper, with a ghostly
+  // whisper behind it and a dark echo. If the clips can't be loaded (for example when the game is opened
+  // straight from a file), the device's own natural voice says the words instead.
   const VOICE_KEY = 'mr-smiles-voice';
   let voiceOn = true;
   try { voiceOn = localStorage.getItem(VOICE_KEY) !== 'off'; } catch (e) { /* ignore */ }
+  const VOICE_CLIPS = new Set(["107a40n", "11ab2il", "11bz227", "11hg2d5", "11o0fcu", "11otqwb", "12v173z", "14es45", "14vaowa", "14xe2z5", "153wo1k", "157p4wo", "16ax6g4", "16o2t1p", "16rd1v3", "16w6ur", "175tyzx", "17hw8xe", "1802fyk", "18up4x", "19ali4m", "19h1xlj", "1a49t4h", "1bj6tsu", "1bk05kc", "1cb0bpw", "1csxvkf", "1d07vwu", "1d5m2od", "1dt7k2", "1epvp5p", "1ffgtu4", "1fq834u", "1frhhbe", "1ftmft2", "1fv56zq", "1fvkioh", "1g0g77s", "1gf5lbz", "1h7zeux", "1ho2bm3", "1hvpe4v", "1i1phxx", "1ih0vcz", "1j4q64v", "1jfeet8", "1juvzlh", "1k00k69", "1kf92nl", "1ktqp2v", "1l6o2en", "1lq2fvv", "1ls73a1", "1ltzfju", "1lw1nvk", "1m0yoji", "1mhdr1c", "1miarf0", "1mvyu7e", "1mzj3p9", "1nd1kbj", "1neyxai", "1onsqni", "1q2jfhq", "1qyip0d", "1rxb5fd", "1sagj33", "1svsqcy", "1tfzi47", "1ukz58k", "1uw2arn", "1v492xo", "1vmx567", "1vvpcv0", "1vysylz", "1w4j0n2", "1wde83j", "1wipnnf", "1wzg5k9", "1xg5yfj", "1xvga2j", "1y01hr", "1y1t3ma", "1y3gnd2", "1y7vhzw", "1yp0xk", "1yt2ugw", "2ju062", "2vw9n4", "4skz8n", "4y4m6i", "5r55u8", "65d9sk", "6nfc3y", "6quuf2", "74je1f", "755wyj", "7kimyj", "7ppxde", "7sduwy", "7tz7c6", "8c2m7o", "8iddlp", "974oa5", "9fe7gz", "9qdhkl", "9yjuig", "a7vzjy", "ajt9k0", "bkk8r4", "bsmxub", "c2cszj", "cq6pxz", "cud9dz", "cxkpbv", "dargr", "dngu88", "dq7gi5", "eiz7w9", "emt468", "f18rlc", "f43b19", "ffvz8z", "g3jgoa", "hvx05j", "hxmnwc", "iddgun", "jzogp0", "kah2ih", "knberj", "lyprfj", "m07sdl", "mg8lae", "mm7n4b", "nj5ea9", "nqhlxl", "oxf5ni", "ql4zpt", "qs9i25", "qvsz17", "qynwii", "r07719", "r5cwzz", "r8tshu", "rc0s3n", "rn6nqx", "ruxuc1", "s1mdp", "s691dt", "srg2jk", "to6jya", "usynsg", "uuy61q", "vgd6fr", "vr7bxz", "vz7grc", "w71bum", "waef4l", "wmlkvw", "wpboib", "x2u79t", "xf9u1g", "xolw3h", "y6h4vy", "ybdu76", "ydaitq", "yskwne", "yvoo5e", "z8h8wk", "zanayh"]);
   const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+  const VoiceAC = window.AudioContext || window.webkitAudioContext;
+  const canClip = !!VoiceAC && location.protocol !== 'file:';
+  const canVoice = canClip || canSpeak;
   const voiceStage = () => state.series > 1 || stage >= 9;
-  // spooky "novelty" voices that Macs and iPhones have; each monster gets one of them
-  const CREEPY_VOICES = ['Whisper', 'Bad News', 'Fred', 'Albert', 'Zarvox', 'Trinoids', 'Ralph', 'Daniel'];
+  // the clip's name: a short code made from the line (the same code the clip-maker used)
+  const lineKey = (text) => { let h = 5381; for (let i = 0; i < text.length; i++) h = (h * 33 + text.charCodeAt(i)) >>> 0; return h.toString(36); };
+  let vctx = null, vSource = null;
+  const clipCache = new Map();
+  function voiceCtx() {
+    if (!vctx && VoiceAC) vctx = new VoiceAC();
+    if (vctx && vctx.state === 'suspended') vctx.resume();
+    return vctx;
+  }
+  function loadClip(key) {
+    if (!clipCache.has(key)) {
+      clipCache.set(key, fetch('voice/' + key + '.m4a')
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then((b) => new Promise((ok, bad) => voiceCtx().decodeAudioData(b, ok, bad)))
+        .catch((e) => { clipCache.delete(key); throw e; }));
+    }
+    return clipCache.get(key);
+  }
+  // natural (not robot) voices, used only when a clip can't be played
+  const SMOOTH_VOICES = ['Daniel', 'Samantha', 'Karen', 'Moira', 'Serena', 'Alex'];
   let voices = [];
   const loadVoices = () => { voices = canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []; };
   if (canSpeak) { loadVoices(); speechSynthesis.addEventListener('voiceschanged', loadVoices); }
-  function voiceFor(lookN) {
-    const list = CREEPY_VOICES.map((n) => voices.find((v) => v.name.startsWith(n))).filter(Boolean);
-    return list.length ? list[lookN % list.length] : voices[0] || null;
+  function smoothVoice(n) {
+    const list = SMOOTH_VOICES.map((name) => voices.find((v) => v.name.startsWith(name))).filter(Boolean);
+    return list.length ? list[n % list.length] : voices[0] || null;
   }
   const STOP_WORDS = new Set(("the a an and or but to of in on at for with is are am was were be been it its it's i i'm im me my mine we our us they " +
     "them their this that these those so do does did have has had will would can could just now all too very oh yes no not here there what who " +
@@ -6842,34 +6944,58 @@
     const start = Math.random() < 0.3 ? ['hehehe... ', 'shhh... ', 'listen... '][Math.floor(Math.random() * 3)] : '';
     return start + best.join('... ') + '...';
   }
-  let lastSpoke = 0;
-  function speakCreepy(text, always = false) {
-    if (!canSpeak || !voiceOn || !voiceStage() || paused || document.hidden) return;
-    if (!always && (Date.now() - lastSpoke < 9000 || Math.random() < 0.35)) return; // not every sentence
-    const words = creepyWords(text);
+  const hushVoice = () => {
+    if (canSpeak) speechSynthesis.cancel();
+    if (vSource) { try { vSource.stop(); } catch (e) { /* already stopped */ } vSource = null; }
+  };
+  function speakWithDevice(text) {
+    if (!canSpeak) return;
+    const words = text.startsWith('hello...') ? text : creepyWords(text);
     if (!words) return;
-    lastSpoke = Date.now();
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(words);
-    const v = voiceFor(look());
+    const v = smoothVoice(look());
     if (v) u.voice = v;
-    u.pitch = 0.1 + Math.random() * 0.35;
-    u.rate = 0.55 + Math.random() * 0.2;
+    u.pitch = 0.75;
+    u.rate = 0.82;
     u.volume = 0.9;
     speechSynthesis.speak(u);
-    sfx('eerie');
   }
-  const hushVoice = () => { if (canSpeak) speechSynthesis.cancel(); };
-  // phones only allow speech after a tap, so the first tap quietly "wakes up" the voice
+  function playClip(buf) {
+    hushVoice();
+    const ctx = voiceCtx();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start();
+    vSource = src;
+  }
+  let lastSpoke = 0;
+  function speakCreepy(text, always = false) {
+    if (!canVoice || !voiceOn || !voiceStage() || paused || document.hidden) return;
+    if (!always && (Date.now() - lastSpoke < 9000 || Math.random() < 0.35)) return; // not every sentence
+    const key = lineKey(text);
+    const hasClip = canClip && VOICE_CLIPS.has(key);
+    if (!hasClip && !(text.startsWith('hello...') || creepyWords(text))) return;
+    lastSpoke = Date.now();
+    sfx('eerie');
+    if (hasClip) loadClip(key).then((buf) => { if (voiceOn && !paused) playClip(buf); }).catch(() => speakWithDevice(text));
+    else speakWithDevice(text);
+  }
+  // phones only allow sound after a tap, so the first tap quietly "wakes up" the voice
   window.addEventListener('pointerdown', () => {
-    if (!canSpeak) return;
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    speechSynthesis.speak(u);
+    if (canClip) {
+      const ctx = voiceCtx();
+      const src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(ctx.destination);
+      src.start();
+    }
+    if (canSpeak) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }
   }, { once: true });
   const voiceBtn = $('#voice-btn');
   function syncVoiceBtn() {
-    voiceBtn.hidden = !canSpeak || !voiceStage();
+    voiceBtn.hidden = !canVoice || !voiceStage();
     setText(voiceBtn, voiceOn ? '🗣️ Voice' : '🤐 Voice');
     voiceBtn.setAttribute('aria-pressed', String(voiceOn));
     voiceBtn.title = voiceOn ? 'Turn the creepy monster voice off' : 'Turn the creepy monster voice on';
@@ -6959,6 +7085,7 @@
 
   function applyFinaleAct(act, announce) {
     for (let i = 1; i <= 5; i++) body.classList.toggle('act-' + i, i === act);
+    wakeHidden();
     if (!announce) {
       if (act === 5) showTheEnd();
       return;
@@ -7051,7 +7178,11 @@
     closeStoryPicker();
     hideTheEnd();
     clearFinaleTimers();
+    // keep the faces made in the Face Editor (and the editor itself) when jumping to a story or stage
+    const keepFaces = state.faces, keepEditor = state.owned.editor;
     state = freshState();
+    state.faces = keepFaces;
+    state.owned.editor = keepEditor;
     state.series = n;
     useSeries();
     if (at > 0) {
