@@ -1878,6 +1878,21 @@
     background: rgba(127,127,127,.12); color: inherit; font: inherit;
   }
   .rank-name input:focus { outline: none; border-color: var(--accent); }
+  /* Message the maker */
+  .fb-card { width: min(100%, 420px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+  .fb-moods { display: flex; justify-content: center; gap: 8px; margin: 4px 0 12px; }
+  .fb-mood {
+    font-size: 1.6rem; width: 52px; height: 52px; border-radius: 14px; cursor: pointer;
+    border: 2px solid rgba(127,127,127,.4); background: rgba(127,127,127,.12);
+  }
+  .fb-mood[aria-pressed="true"] { border-color: var(--accent); background: rgba(127,127,127,.3); transform: scale(1.08); }
+  .fb-text {
+    width: 100%; box-sizing: border-box; min-height: 110px; padding: 10px; border-radius: 10px; resize: vertical;
+    border: 2px solid rgba(127,127,127,.5); background: rgba(127,127,127,.12); color: inherit; font: inherit; font-size: 16px;
+  }
+  .fb-text:focus { outline: none; border-color: var(--accent); }
+  .fb-note { font-size: .8rem; opacity: .75; margin: 8px 0 12px; }
+  .start-msg { margin-top: 12px; background: none; border: none; color: inherit; font: inherit; font-weight: 700; opacity: .75; text-decoration: underline; cursor: pointer; }
   .rank-list { list-style: none; margin: 0 0 14px; padding: 0; text-align: left; }
   .rank-list li {
     display: grid; grid-template-columns: 2.2em 1fr auto; gap: 8px; align-items: center;
@@ -2979,6 +2994,7 @@
         </form>
         <p id="start-full" class="start-note" hidden>4 players already! Delete a file to add a new player.</p>
       </div>
+      <button id="start-msg" class="start-msg" type="button">💌 Message the maker</button>
     </div>
   </div>
 
@@ -3057,6 +3073,25 @@
     </div>
   </div>
 
+  <div id="fb-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+    <div class="modal-card fb-card">
+      <h3 id="fb-title">💌 Message the maker</h3>
+      <p>How do you like Mr. Smiles?</p>
+      <div class="fb-moods" id="fb-moods">
+        <button class="fb-mood" type="button" data-mood="I love it!" aria-pressed="false" aria-label="I love it">😍</button>
+        <button class="fb-mood" type="button" data-mood="It's fun" aria-pressed="false" aria-label="It's fun">😃</button>
+        <button class="fb-mood" type="button" data-mood="It's OK" aria-pressed="false" aria-label="It's OK">😐</button>
+        <button class="fb-mood" type="button" data-mood="Too scary!" aria-pressed="false" aria-label="Too scary">😱</button>
+      </div>
+      <textarea id="fb-text" class="fb-text" maxlength="1000" placeholder="Your favourite monster, ideas for new stages, a bug you found…" aria-label="Your message"></textarea>
+      <p class="fb-note">Only the game maker sees this. It opens your email app to send it. Please don't write your address or phone number.</p>
+      <div class="modal-actions">
+        <button id="fb-cancel" class="btn-cancel" type="button">Cancel</button>
+        <button id="fb-send" class="big-btn" type="button">📨 Send</button>
+      </div>
+    </div>
+  </div>
+
   <div id="squiz-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="squiz-title">
     <div class="modal-card">
       <h3 id="squiz-title">❓ Stage quiz</h3>
@@ -3077,6 +3112,7 @@
         <button id="x-pause" class="x-option" type="button"><strong>⏸ Pause</strong><span>Take a little break</span></button>
         <button id="x-stages" class="x-option" type="button"><strong>📖 Pick a stage</strong><span>Jump to a story or stage you have reached</span></button>
         <button id="x-end" class="x-option" type="button"><strong id="x-end-label">👋 End game</strong><span id="x-end-note">Save, then go back to the start screen</span></button>
+        <button id="x-msg" class="x-option" type="button"><strong>💌 Message the maker</strong><span>Tell us what you think of the game</span></button>
       </div>
       <div class="modal-actions">
         <button id="x-cancel" class="big-btn" type="button">▶ Keep playing</button>
@@ -5874,7 +5910,7 @@
 
   /* ---------- Reset popup ---------- */
   let modalOpen = false;
-  const popupOpen = () => modalOpen || spinOpen || editorOpen || quizOpen || rankOpen || squizOpen || endOpen || storyOpen || xMenuOpen || stickerOpen || startOpen;
+  const popupOpen = () => modalOpen || spinOpen || editorOpen || quizOpen || rankOpen || squizOpen || endOpen || storyOpen || xMenuOpen || stickerOpen || startOpen || fbOpen;
   function openModal() { modalOpen = true; el.modal.classList.add('open'); el.cancel.focus(); }
   function closeModal() { modalOpen = false; el.modal.classList.remove('open'); el.resetBtn.focus(); }
 
@@ -5890,6 +5926,7 @@
     else if (e.key === 'Escape' && squizOpen) closeStageQuiz();
     else if (e.key === 'Escape' && storyOpen) closeStoryPicker();
     else if (e.key === 'Escape' && xMenuOpen) closeXMenu();
+    else if (e.key === 'Escape' && fbOpen) closeFeedback();
     else if ((e.key === 'p' || e.key === 'P') && !popupOpen()) setPaused(!paused);
   });
   el.confirm.addEventListener('click', () => {
@@ -6680,6 +6717,43 @@
     else { save(); openStart(); }
   });
   el.xCancel.addEventListener('click', closeXMenu);
+  $('#x-msg').addEventListener('click', () => { closeXMenu(); openFeedback(); });
+
+  /* ---------- Message the maker ---------- */
+  // A private note to the game maker: it opens the player's email app with the message filled in.
+  const FEEDBACK_TO = 'niqiqi2@googlemail.com';
+  let fbOpen = false, fbMood = '';
+  function openFeedback() {
+    fbOpen = true;
+    fbMood = '';
+    document.querySelectorAll('.fb-mood').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    $('#fb-modal').classList.add('open');
+    $('#fb-modal .modal-card').scrollTop = 0;
+    $('.fb-mood').focus({ preventScroll: true });
+  }
+  function closeFeedback() {
+    fbOpen = false;
+    $('#fb-modal').classList.remove('open');
+  }
+  $('#fb-moods').addEventListener('click', (e) => {
+    const b = e.target.closest('.fb-mood');
+    if (!b) return;
+    fbMood = b.dataset.mood;
+    document.querySelectorAll('.fb-mood').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  $('#fb-send').addEventListener('click', () => {
+    const text = $('#fb-text').value.trim();
+    if (!text && !fbMood) { $('#fb-text').focus(); return; }
+    const who = currentFile() ? currentFile().name : 'A player';
+    const where = startOpen ? 'the start screen' : $('#stage-label').textContent;
+    const body = (fbMood ? fbMood + '\n\n' : '') + (text ? text + '\n\n' : '') + `— ${who} (at ${where})`;
+    location.href = `mailto:${FEEDBACK_TO}?subject=${encodeURIComponent('Mr. Smiles message from ' + who)}&body=${encodeURIComponent(body)}`;
+    $('#fb-text').value = '';
+    closeFeedback();
+  });
+  $('#fb-cancel').addEventListener('click', closeFeedback);
+  $('#fb-modal').addEventListener('click', (e) => { if (e.target.id === 'fb-modal') closeFeedback(); });
+  $('#start-msg').addEventListener('click', openFeedback);
   el.xMenu.addEventListener('click', (e) => { if (e.target === el.xMenu) closeXMenu(); });
 
   /* ---------- Rankings (best scores on this device) ---------- */
